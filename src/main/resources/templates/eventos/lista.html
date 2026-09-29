@@ -79,7 +79,13 @@
 
 					<td th:text="${e.horario}">22:00</td>
 
-					<td><a th:href="@{/eventos/{id}/remover(id=${e.id})}"> <i class="material-icons">delete</i></a></td>
+					<td>
+
+					<a th:href="@{/eventos/{id}/selecionar(id=${e.id})}"><i class="material-icons">edit</i></a>
+
+					<a th:href="@{/eventos/{id}/remover(id=${e.id})}"> <i class="material-icons">delete</i></a>
+
+					</td>
 
 				</tr>
 
@@ -94,3 +100,4 @@
 </body>
 
 </html>
+

@@ -1,45 +1,83 @@
 package ifrn.pi.eventos.controllers;
 
 import java.util.List;
+
 import java.util.Optional;
+
+
+
 import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.stereotype.Controller;
+
 import org.springframework.web.bind.annotation.GetMapping;
+
 import org.springframework.web.bind.annotation.PathVariable;
+
 import org.springframework.web.bind.annotation.PostMapping;
+
 import org.springframework.web.bind.annotation.RequestMapping;
+
 import org.springframework.web.servlet.ModelAndView;
+
+
+
 import ifrn.pi.eventos.models.Convidado;
+
 import ifrn.pi.eventos.models.Evento;
+
 import ifrn.pi.eventos.repositories.ConvidadoRepository;
+
 import ifrn.pi.eventos.repositories.EventoRepository;
 
+
+
 @Controller
+
 @RequestMapping("/eventos")
+
 public class EventosController {
 
+
+
 	@Autowired
+
 	private EventoRepository er;
 
 	@Autowired
+
 	private ConvidadoRepository cr;
 
-	@RequestMapping("/form")
-	public String form() {
+
+
+	@GetMapping("/form")
+
+	public String form(Evento evento) {
+
 		return "eventos/formEvento";
 
 	}
 
+
+
 	@PostMapping
+
 	public String salvar(Evento evento) {
+
 		System.out.println(evento);
+
 		er.save(evento);
-		return "eventos/eventoSalvo";
+
+		return "redirect:/eventos";
 
 	}
 
+
+
 	@GetMapping
+
 	public ModelAndView listar() {
+
 		List<Evento> eventos = er.findAll();
 
 		ModelAndView mv = new ModelAndView("eventos/lista");
@@ -50,15 +88,19 @@ public class EventosController {
 
 	}
 
+	
+
 	@GetMapping("/{id}")
 
-	public ModelAndView detalhar(@PathVariable Long id) {
+	public ModelAndView detalhar(@PathVariable Long id, Convidado convidado) {
 
 		ModelAndView md = new ModelAndView("");
 
 		Optional<Evento> opt = er.findById(id);
 
-		if (opt.isEmpty()) {
+		
+
+		if(opt.isEmpty()) {
 
 			md.setViewName("redirect:/eventos");
 
@@ -66,19 +108,27 @@ public class EventosController {
 
 		}
 
+		
+
 		md.setViewName("eventos/detalhes");
 
 		Evento evento = opt.get();
 
 		md.addObject("evento", evento);
 
+		
+
 		List<Convidado> convidados = cr.findByEvento(evento);
 
 		md.addObject("convidados", convidados);
 
+		
+
 		return md;
 
 	}
+
+	
 
 	@PostMapping("/{idEvento}")
 
@@ -88,13 +138,17 @@ public class EventosController {
 
 		System.out.println(convidado);
 
+		
+
 		Optional<Evento> opt = er.findById(idEvento);
 
-		if (opt.isEmpty()) {
+		if(opt.isEmpty()) {
 
 			return "redirect:/eventos/";
 
 		}
+
+		
 
 		Evento evento = opt.get();
 
@@ -102,17 +156,101 @@ public class EventosController {
 
 		cr.save(convidado);
 
+		
+
 		return "redirect:/eventos/{idEvento}";
 
 	}
+
+	@GetMapping("/{id}/selecionar")
+
+	public ModelAndView selecionarEvento(@PathVariable Long id) {
+
+		ModelAndView md = new ModelAndView();
+
+		Optional<Evento> opt = er.findById(id);
+
+		if(opt.isEmpty()) {
+
+			md.setViewName("redirect:/eventos");
+
+			return md;
+
+		}
+
+		
+
+		Evento evento = opt.get();
+
+		md.setViewName("eventos;formEvento");
+
+		return md.addObject("evento", evento);
+
+		
+
+	}
+
+	@GetMapping("/{idEvento}/convidados/{idConvidado}/selecionar")
+
+	public ModelAndView selecionarConvidado(@PathVariable Long idEvento, @PathVariable Long idConviado) {
+
+		ModelAndView md = new ModelAndView();
+
+	Optional<Evento> optEvento = er.findById(idEvento);
+
+	Optional<Convidado> optConvidado = cr.findById(idConviado);
+
+	
+
+	if(optEvento.isEmpty() || optConvidado.isEmpty()) {
+
+		md.setViewName("redirect:/eventos");
+
+	}
+
+		Evento evento = optEvento.get();
+
+		Convidado convidado = optConvidado.get();
+
+		
+
+		if(evento.getId() != convidado.getEvento().getId()) {
+
+			return md;
+
+		}
+
+		
+
+		md.setViewName("eventos/detalhes");
+
+		md.addObject("convidado", convidado);
+
+		md.addObject("evento", evento);
+
+		md.addObject("convidados", cr.findByEvento(evento));
+
+		
+
+	return md;
+
+	}
+
+	
+
+	
 
 	@GetMapping("/{id}/remover")
 
 	public String apagarEvento(@PathVariable Long id) {
 
-		Optional<Evento> opt = er.findById(id);
+		
 
-		if (!opt.isEmpty()) {
+		Optional<Evento> opt = er.findById(id);		
+
+		
+
+		if(!opt.isEmpty()) {
 
 			Evento evento = opt.get();
 
@@ -121,6 +259,8 @@ public class EventosController {
 			cr.deleteAll(convidados);
 
 			er.delete(evento);
+
+			
 
 		}
 
